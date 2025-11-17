@@ -1,7 +1,9 @@
 unit Horse.CORS;
+
 {$IF DEFINED(FPC)}
-{$MODE DELPHI}{$H+}
+  {$MODE DELPHI}{$H+}
 {$ENDIF}
+
 interface
 
 uses
@@ -23,7 +25,7 @@ type
   end;
 
 function HorseCORS(): HorseCORSConfig; overload;
-procedure CORS(Req: THorseRequest; Res: THorseResponse; Next: {$IF DEFINED(FPC)}TNextProc{$ELSE}  TProc {$ENDIF}); overload;
+procedure CORS(Req: THorseRequest; Res: THorseResponse; Next: {$IF DEFINED(FPC)}TNextProc{$ELSE}TProc{$ENDIF}); overload;
 
 implementation
 
@@ -42,23 +44,22 @@ var
   LAllowedMethods: string;
   LExposedHeaders: string;
 
-procedure CORS(Req: THorseRequest; Res: THorseResponse; Next: {$IF DEFINED(FPC)}TNextProc{$ELSE}  TProc {$ENDIF});
+procedure CORS(Req: THorseRequest; Res: THorseResponse; Next: {$IF DEFINED(FPC)}TNextProc{$ELSE}TProc{$ENDIF});
 var
-  sl: TArray<String>;
-  Allowed, Origin: String;
+  LAlloweds: TArray<String>;
+  LAllowed, LOrigin: String;
 begin
-  Allowed := LAllowedOrigin;
-  Origin := Req.Headers['Origin'];
+  LAllowed := LAllowedOrigin;
+  LOrigin := Req.Headers['Origin'];
 
-  if Allowed <> '*' then
+  if LAllowed <> '*' then
   begin
-    sl := Allowed.Split([',', ';', ' '], TStringSplitOptions.ExcludeEmpty);
-
-    if not MatchText(Origin, sl) then
-      Origin := 'null';
+    LAlloweds := LAllowed.Split([',', ';', ' '], TStringSplitOptions.ExcludeEmpty);
+    if not MatchText(LOrigin, LAlloweds) then
+      LOrigin := 'null';
   end;
 
-  Res.RawWebResponse.SetCustomHeader('Access-Control-Allow-Origin', Origin);
+  Res.RawWebResponse.SetCustomHeader('Access-Control-Allow-Origin', LOrigin);
   Res.RawWebResponse.SetCustomHeader('Access-Control-Allow-Credentials', LAllowedCredentials);
   Res.RawWebResponse.SetCustomHeader('Access-Control-Allow-Headers', LAllowedHeaders);
   Res.RawWebResponse.SetCustomHeader('Access-Control-Allow-Methods', LAllowedMethods);
