@@ -15,13 +15,15 @@ uses
   Horse;
 
 type
+  PHorseCORSConfig = ^HorseCORSConfig;
+
   HorseCORSConfig = record
   public
-    function AllowedOrigin(AAllowedOrigin: string): HorseCORSConfig;
-    function AllowedCredentials(AAllowedCredentials: Boolean): HorseCORSConfig;
-    function AllowedHeaders(AAllowedHeaders: string): HorseCORSConfig;
-    function AllowedMethods(AAllowedMethods: string): HorseCORSConfig;
-    function ExposedHeaders(AExposedHeaders: string): HorseCORSConfig;
+    function AllowedOrigin(AAllowedOrigin: string): PHorseCORSConfig;
+    function AllowedCredentials(AAllowedCredentials: Boolean): PHorseCORSConfig;
+    function AllowedHeaders(AAllowedHeaders: string): PHorseCORSConfig;
+    function AllowedMethods(AAllowedMethods: string): PHorseCORSConfig;
+    function ExposedHeaders(AExposedHeaders: string): PHorseCORSConfig;
   end;
 
 function HorseCORS(): HorseCORSConfig; overload;
@@ -48,6 +50,8 @@ procedure CORS(Req: THorseRequest; Res: THorseResponse; Next: {$IF DEFINED(FPC)}
 var
   LAlloweds: TArray<String>;
   LAllowed, LOrigin: String;
+  LMatch: Boolean;
+  i: Integer;
 begin
   LAllowed := LAllowedOrigin;
   LOrigin := Req.Headers['Origin'];
@@ -58,7 +62,16 @@ begin
   if LAllowed <> '*' then
   begin
     LAlloweds := LAllowed.Split([',', ';', ' '], TStringSplitOptions.ExcludeEmpty);
-    if not MatchText(LOrigin, LAlloweds) then
+    LMatch := False;
+
+    for i := Low(LAlloweds) to High(LAlloweds) do
+      if SameText(LAlloweds[i], LOrigin) then
+      begin
+        LMatch := True;
+        Break;
+      end;
+
+    if not LMatch then
       LOrigin := 'null';
   end;
 
@@ -78,34 +91,39 @@ end;
 
 { HorseCORS }
 
-function HorseCORSConfig.AllowedCredentials(AAllowedCredentials: Boolean): HorseCORSConfig;
+function HorseCORSConfig.AllowedCredentials(AAllowedCredentials: Boolean): PHorseCORSConfig;
 begin
+  Result := @Self;
   LAllowedCredentials := ifthen(AAllowedCredentials, 'true', 'false');
 end;
 
-function HorseCORSConfig.AllowedHeaders(AAllowedHeaders: string): HorseCORSConfig;
+function HorseCORSConfig.AllowedHeaders(AAllowedHeaders: string): PHorseCORSConfig;
 begin
+  Result := @Self;
   LAllowedHeaders := AAllowedHeaders;
 end;
 
-function HorseCORSConfig.AllowedMethods(AAllowedMethods: string): HorseCORSConfig;
+function HorseCORSConfig.AllowedMethods(AAllowedMethods: string): PHorseCORSConfig;
 begin
+  Result := @Self;
   LAllowedMethods := AAllowedMethods;
 end;
 
-function HorseCORSConfig.AllowedOrigin(AAllowedOrigin: string): HorseCORSConfig;
+function HorseCORSConfig.AllowedOrigin(AAllowedOrigin: string): PHorseCORSConfig;
 begin
+  Result := @Self;
   LAllowedOrigin := AAllowedOrigin;
 end;
 
-function HorseCORSConfig.ExposedHeaders(AExposedHeaders: string): HorseCORSConfig;
+function HorseCORSConfig.ExposedHeaders(AExposedHeaders: string): PHorseCORSConfig;
 begin
+  Result := @Self;
   LExposedHeaders := AExposedHeaders;
 end;
 
 function HorseCORS(): HorseCORSConfig;
 begin
-  //
+  Result := Default(HorseCORSConfig);
 end;
 
 initialization
